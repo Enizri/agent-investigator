@@ -1,0 +1,1782 @@
+[
+  {
+    "question": "What is the current status of incident 1: SQL injection in billing invoice search?",
+    "category": "current_status",
+    "family": "billing_sqli_resolved",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-001",
+      "knowledge-005",
+      "knowledge-011",
+      "knowledge-026"
+    ],
+    "expected_incident_ids": [
+      1
+    ],
+    "expected_status": {
+      "1": "resolved"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "dev",
+    "id": "q-001"
+  },
+  {
+    "question": "What is the current status of incident 2: Broken access control on user profiles?",
+    "category": "current_status",
+    "family": "user_idor_open",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-002",
+      "knowledge-001",
+      "knowledge-012",
+      "knowledge-027",
+      "knowledge-050"
+    ],
+    "expected_incident_ids": [
+      2
+    ],
+    "expected_status": {
+      "2": "open"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-002"
+  },
+  {
+    "question": "What is the current status of incident 3: Broken object authorization on invoices?",
+    "category": "current_status",
+    "family": "billing_bac_resolved",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-003",
+      "knowledge-001",
+      "knowledge-012",
+      "knowledge-027",
+      "knowledge-050"
+    ],
+    "expected_incident_ids": [
+      3
+    ],
+    "expected_status": {
+      "3": "resolved"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-003"
+  },
+  {
+    "question": "What is the current status of incident 4: Session revocation regression?",
+    "category": "current_status",
+    "family": "auth_regression_reopened",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-004",
+      "knowledge-007",
+      "knowledge-016",
+      "knowledge-044"
+    ],
+    "expected_incident_ids": [
+      4
+    ],
+    "expected_status": {
+      "4": "reopened"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": "reopened",
+    "split": "train",
+    "id": "q-004"
+  },
+  {
+    "question": "What is the current status of incident 5: Public object listing mitigation pending verification?",
+    "category": "current_status",
+    "family": "file_misconfig_unverified",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-005",
+      "knowledge-043"
+    ],
+    "expected_incident_ids": [
+      5
+    ],
+    "expected_status": {
+      "5": "mitigated"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "test",
+    "id": "q-005"
+  },
+  {
+    "question": "What is the current status of incident 6: Unsigned admin artifact with sparse logs?",
+    "category": "current_status",
+    "family": "admin_integrity_sparse",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-006",
+      "knowledge-008",
+      "knowledge-038"
+    ],
+    "expected_incident_ids": [
+      6
+    ],
+    "expected_status": {
+      "6": "investigating"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-006"
+  },
+  {
+    "question": "What is the current status of incident 7: Outbound requests to internal metadata addresses?",
+    "category": "current_status",
+    "family": "gateway_ssrf_resolved",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-007",
+      "knowledge-001",
+      "knowledge-018",
+      "knowledge-037"
+    ],
+    "expected_incident_ids": [
+      7
+    ],
+    "expected_status": {
+      "7": "resolved"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "test",
+    "id": "q-007"
+  },
+  {
+    "question": "What is the current status of incident 8: Tokens signed with a retired cipher suite?",
+    "category": "current_status",
+    "family": "auth_legacy_cipher",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-008",
+      "knowledge-004",
+      "knowledge-031"
+    ],
+    "expected_incident_ids": [
+      8
+    ],
+    "expected_status": {
+      "8": "open"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "dev",
+    "id": "q-008"
+  },
+  {
+    "question": "What is the current status of incident 9: Permission changes missing from the audit trail?",
+    "category": "current_status",
+    "family": "user_audit_gap",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-009",
+      "knowledge-009",
+      "knowledge-036"
+    ],
+    "expected_incident_ids": [
+      9
+    ],
+    "expected_status": {
+      "9": "investigating"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "test",
+    "id": "q-009"
+  },
+  {
+    "question": "What is the current status of incident 10: Admin console ships a vulnerable XML parser?",
+    "category": "current_status",
+    "family": "admin_vulnerable_library",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-010",
+      "knowledge-003",
+      "knowledge-035"
+    ],
+    "expected_incident_ids": [
+      10
+    ],
+    "expected_status": {
+      "10": "mitigated"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "dev",
+    "id": "q-010"
+  },
+  {
+    "question": "What is the current status of incident 11: Refund workflow skips a second approver?",
+    "category": "current_status",
+    "family": "billing_workflow_gap",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-011",
+      "knowledge-006",
+      "knowledge-024",
+      "knowledge-040"
+    ],
+    "expected_incident_ids": [
+      11
+    ],
+    "expected_status": {
+      "11": "resolved"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-011"
+  },
+  {
+    "question": "What is the current status of incident 12: Download names echoed into an error page?",
+    "category": "current_status",
+    "family": "file_reflected_content_fp",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-012",
+      "knowledge-015",
+      "knowledge-028",
+      "knowledge-049"
+    ],
+    "expected_incident_ids": [
+      12
+    ],
+    "expected_status": {
+      "12": "false_positive"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "dev",
+    "id": "q-012"
+  },
+  {
+    "question": "What is the current status of incident 13: Overly broad CORS origin on internal routes?",
+    "category": "current_status",
+    "family": "gateway_cors_misconfig",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-013",
+      "knowledge-021",
+      "knowledge-045"
+    ],
+    "expected_incident_ids": [
+      13
+    ],
+    "expected_status": {
+      "13": "resolved"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "test",
+    "id": "q-013"
+  },
+  {
+    "question": "What is the current status of incident 14: Sessions survived password reset?",
+    "category": "current_status",
+    "family": "auth_session_not_revoked",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-014",
+      "knowledge-007",
+      "knowledge-016",
+      "knowledge-044"
+    ],
+    "expected_incident_ids": [
+      14
+    ],
+    "expected_status": {
+      "14": "reopened"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": "reopened",
+    "split": "train",
+    "id": "q-014"
+  },
+  {
+    "question": "What is the current status of incident 15: Avatar endpoint trusted a caller-supplied owner id?",
+    "category": "current_status",
+    "family": "user_secondary_idor",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-015",
+      "knowledge-001",
+      "knowledge-012",
+      "knowledge-027",
+      "knowledge-050"
+    ],
+    "expected_incident_ids": [
+      15
+    ],
+    "expected_status": {
+      "15": "resolved"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-015"
+  },
+  {
+    "question": "What is the current status of incident 16: Invoice webhook fetcher accepted link-local URLs?",
+    "category": "current_status",
+    "family": "billing_webhook_ssrf",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-016",
+      "knowledge-001",
+      "knowledge-018",
+      "knowledge-037"
+    ],
+    "expected_incident_ids": [
+      16
+    ],
+    "expected_status": {
+      "16": "open"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-016"
+  },
+  {
+    "question": "What is the current status of incident 17: Privileged deletes were not shipped to the SIEM?",
+    "category": "current_status",
+    "family": "admin_monitoring_gap",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-017",
+      "knowledge-009",
+      "knowledge-036"
+    ],
+    "expected_incident_ids": [
+      17
+    ],
+    "expected_status": {
+      "17": "resolved"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-017"
+  },
+  {
+    "question": "What is the current status of incident 18: Build artifact accepted without a signature check?",
+    "category": "current_status",
+    "family": "file_unsigned_package",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-018",
+      "knowledge-008",
+      "knowledge-038"
+    ],
+    "expected_incident_ids": [
+      18
+    ],
+    "expected_status": {
+      "18": "investigating"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-018"
+  },
+  {
+    "question": "What is the current status of incident 19: A legacy listener allowed TLS 1.0?",
+    "category": "current_status",
+    "family": "gateway_tls_downgrade",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-019",
+      "knowledge-004",
+      "knowledge-019",
+      "knowledge-032"
+    ],
+    "expected_incident_ids": [
+      19
+    ],
+    "expected_status": {
+      "19": "mitigated"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-019"
+  },
+  {
+    "question": "What is the current status of incident 20: MFA prompt storm during a vendor test?",
+    "category": "current_status",
+    "family": "auth_mfa_prompt_fp",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-020",
+      "knowledge-048"
+    ],
+    "expected_incident_ids": [
+      20
+    ],
+    "expected_status": {
+      "20": "false_positive"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-020"
+  },
+  {
+    "question": "What is the current status of incident 21: Profile update accepted a role field?",
+    "category": "current_status",
+    "family": "user_mass_assignment",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-021",
+      "knowledge-023",
+      "knowledge-046"
+    ],
+    "expected_incident_ids": [
+      21
+    ],
+    "expected_status": {
+      "21": "resolved"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-021"
+  },
+  {
+    "question": "What is the current status of incident 22: Debug route exposed invoice totals?",
+    "category": "current_status",
+    "family": "billing_debug_route",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-022",
+      "knowledge-047"
+    ],
+    "expected_incident_ids": [
+      22
+    ],
+    "expected_status": {
+      "22": "reopened"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": "reopened",
+    "split": "train",
+    "id": "q-022"
+  },
+  {
+    "question": "What is the current status of incident 23: Export job passed filenames through a shell?",
+    "category": "current_status",
+    "family": "admin_shell_metacharacters",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-023",
+      "knowledge-017",
+      "knowledge-042"
+    ],
+    "expected_incident_ids": [
+      23
+    ],
+    "expected_status": {
+      "23": "open"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-023"
+  },
+  {
+    "question": "What is the current status of incident 24: Download path joined a caller-supplied prefix?",
+    "category": "current_status",
+    "family": "file_path_join",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-024",
+      "knowledge-014",
+      "knowledge-041",
+      "knowledge-050"
+    ],
+    "expected_incident_ids": [
+      24
+    ],
+    "expected_status": {
+      "24": "resolved"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-024"
+  },
+  {
+    "question": "What is the current status of incident 25: Edge proxy version matched fictional advisory CVE-2099-10042?",
+    "category": "current_status",
+    "family": "gateway_outdated_proxy",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-025",
+      "knowledge-003",
+      "knowledge-035"
+    ],
+    "expected_incident_ids": [
+      25
+    ],
+    "expected_status": {
+      "25": "investigating"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "dev",
+    "id": "q-025"
+  },
+  {
+    "question": "What is the current status of incident 26: A retired verifier still accepted unsigned tokens?",
+    "category": "current_status",
+    "family": "auth_jwt_none_alg",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-026",
+      "knowledge-031",
+      "knowledge-033"
+    ],
+    "expected_incident_ids": [
+      26
+    ],
+    "expected_status": {
+      "26": "resolved"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "test",
+    "id": "q-026"
+  },
+  {
+    "question": "What is the current status of incident 27: Failed permission checks were dropped by the collector?",
+    "category": "current_status",
+    "family": "user_login_telemetry",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-027",
+      "knowledge-009",
+      "knowledge-036"
+    ],
+    "expected_incident_ids": [
+      27
+    ],
+    "expected_status": {
+      "27": "mitigated"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-027"
+  },
+  {
+    "question": "What is the current status of incident 28: Payment webhook accepted unsigned bodies?",
+    "category": "current_status",
+    "family": "billing_unsigned_webhook",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-028",
+      "knowledge-008",
+      "knowledge-039"
+    ],
+    "expected_incident_ids": [
+      28
+    ],
+    "expected_status": {
+      "28": "resolved"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-028"
+  },
+  {
+    "question": "What is the current status of incident 29: Scanner reported a default password that was not present?",
+    "category": "current_status",
+    "family": "admin_default_password_fp",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-029",
+      "knowledge-015"
+    ],
+    "expected_incident_ids": [
+      29
+    ],
+    "expected_status": {
+      "29": "false_positive"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-029"
+  },
+  {
+    "question": "What is the current status of incident 30: A bucket policy allowed anonymous object listing?",
+    "category": "current_status",
+    "family": "file_public_listing",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-030",
+      "knowledge-043"
+    ],
+    "expected_incident_ids": [
+      30
+    ],
+    "expected_status": {
+      "30": "open"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-030"
+  },
+  {
+    "question": "Was the billing SQL injection still active on 2026-08-11?",
+    "category": "historical_status",
+    "family": "billing_sqli_resolved",
+    "as_of": "2026-08-11T12:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-001"
+    ],
+    "expected_incident_ids": [
+      1
+    ],
+    "expected_status": {
+      "1": "investigating"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": "outdated_report",
+    "split": "dev",
+    "id": "q-031"
+  },
+  {
+    "question": "Is the recent billing authorization alert the same resolved vulnerability?",
+    "category": "similar_incidents",
+    "family": "billing_bac_resolved",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-003",
+      "alert-065"
+    ],
+    "expected_incident_ids": [
+      3
+    ],
+    "expected_status": {
+      "3": "resolved"
+    },
+    "expected_unverified_alert_ids": [
+      65
+    ],
+    "answerable": true,
+    "failure_case": "new_alert_like_resolved_incident",
+    "split": "train",
+    "id": "q-032"
+  },
+  {
+    "question": "Is the blocked billing SQL injection request a real vulnerability?",
+    "category": "false_positives",
+    "family": "billing_sqli_resolved",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "alert-064",
+      "knowledge-005"
+    ],
+    "expected_incident_ids": [],
+    "expected_status": {},
+    "expected_unverified_alert_ids": [
+      64
+    ],
+    "answerable": true,
+    "failure_case": "blocked_attempt",
+    "split": "dev",
+    "id": "q-033"
+  },
+  {
+    "question": "Is the auth-service login burst a confirmed vulnerability or a false positive?",
+    "category": "false_positives",
+    "family": "auth_login_drill_fp",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "alert-066"
+    ],
+    "expected_incident_ids": [],
+    "expected_status": {},
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": "false_positive",
+    "split": "dev",
+    "id": "q-034"
+  },
+  {
+    "question": "Was the file-service bucket policy change verified?",
+    "category": "conflicting_evidence",
+    "family": "file_misconfig_unverified",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-005"
+    ],
+    "expected_incident_ids": [
+      5
+    ],
+    "expected_status": {
+      "5": "mitigated"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": "unverified_remediation",
+    "split": "test",
+    "id": "q-035"
+  },
+  {
+    "question": "What is the status of the unsigned admin artifact incident?",
+    "category": "multi_source",
+    "family": "admin_integrity_sparse",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-006"
+    ],
+    "expected_incident_ids": [
+      6
+    ],
+    "expected_status": {
+      "6": "investigating"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": "sparse_logs",
+    "split": "train",
+    "id": "q-036"
+  },
+  {
+    "question": "Explain CWE-89",
+    "category": "exact_identifier",
+    "family": "cwe-CWE-89",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "knowledge-005",
+      "knowledge-011",
+      "knowledge-026"
+    ],
+    "expected_incident_ids": [],
+    "expected_status": {},
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": "exact_identifier",
+    "split": "dev",
+    "id": "q-037"
+  },
+  {
+    "question": "Explain CWE-639",
+    "category": "exact_identifier",
+    "family": "cwe-CWE-639",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "knowledge-001",
+      "knowledge-012",
+      "knowledge-027",
+      "knowledge-050"
+    ],
+    "expected_incident_ids": [],
+    "expected_status": {},
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": "exact_identifier",
+    "split": "test",
+    "id": "q-038"
+  },
+  {
+    "question": "Explain CWE-918",
+    "category": "exact_identifier",
+    "family": "cwe-CWE-918",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "knowledge-001",
+      "knowledge-018",
+      "knowledge-037"
+    ],
+    "expected_incident_ids": [],
+    "expected_status": {},
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": "exact_identifier",
+    "split": "train",
+    "id": "q-039"
+  },
+  {
+    "question": "Explain CWE-778",
+    "category": "exact_identifier",
+    "family": "cwe-CWE-778",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "knowledge-009",
+      "knowledge-036"
+    ],
+    "expected_incident_ids": [],
+    "expected_status": {},
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": "exact_identifier",
+    "split": "train",
+    "id": "q-040"
+  },
+  {
+    "question": "Explain CWE-494",
+    "category": "exact_identifier",
+    "family": "cwe-CWE-494",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "knowledge-008",
+      "knowledge-038"
+    ],
+    "expected_incident_ids": [],
+    "expected_status": {},
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": "exact_identifier",
+    "split": "test",
+    "id": "q-041"
+  },
+  {
+    "question": "What causes broken access control?",
+    "category": "knowledge_retrieval",
+    "family": "knowledge-access-control",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "knowledge-001",
+      "knowledge-001",
+      "knowledge-012",
+      "knowledge-027",
+      "knowledge-050"
+    ],
+    "expected_incident_ids": [],
+    "expected_status": {},
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "test",
+    "id": "q-042"
+  },
+  {
+    "question": "Which incidents changed status in the last week?",
+    "category": "temporal_comparison",
+    "family": "temporal-week",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-004",
+      "incident-005",
+      "incident-022"
+    ],
+    "expected_incident_ids": [
+      4,
+      5,
+      22
+    ],
+    "expected_status": {
+      "4": "reopened",
+      "5": "mitigated",
+      "22": "reopened"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": "temporal",
+    "split": "test",
+    "id": "q-043"
+  },
+  {
+    "question": "What happened in widget-service?",
+    "category": "unanswerable",
+    "family": "widget-service",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [],
+    "expected_incident_ids": [],
+    "expected_status": {},
+    "expected_unverified_alert_ids": [],
+    "answerable": false,
+    "failure_case": "abstention",
+    "split": "test",
+    "id": "q-044"
+  },
+  {
+    "question": "What happened in payroll-service?",
+    "category": "unanswerable",
+    "family": "payroll-service",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [],
+    "expected_incident_ids": [],
+    "expected_status": {},
+    "expected_unverified_alert_ids": [],
+    "answerable": false,
+    "failure_case": "abstention",
+    "split": "train",
+    "id": "q-045"
+  },
+  {
+    "question": "What happened in unknown-service?",
+    "category": "unanswerable",
+    "family": "unknown-service",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [],
+    "expected_incident_ids": [],
+    "expected_status": {},
+    "expected_unverified_alert_ids": [],
+    "answerable": false,
+    "failure_case": "abstention",
+    "split": "dev",
+    "id": "q-046"
+  },
+  {
+    "question": "What was the status of incident 1 when it was detected?",
+    "category": "historical_status",
+    "family": "billing_sqli_resolved",
+    "as_of": "2026-08-10T14:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-001"
+    ],
+    "expected_incident_ids": [
+      1
+    ],
+    "expected_status": {
+      "1": "open"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "dev",
+    "id": "q-047"
+  },
+  {
+    "question": "What was the status of incident 2 when it was detected?",
+    "category": "historical_status",
+    "family": "user_idor_open",
+    "as_of": "2026-10-01T08:15:00+00:00",
+    "relevant_document_ids": [
+      "incident-002"
+    ],
+    "expected_incident_ids": [
+      2
+    ],
+    "expected_status": {
+      "2": "open"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-048"
+  },
+  {
+    "question": "What was the status of incident 3 when it was detected?",
+    "category": "historical_status",
+    "family": "billing_bac_resolved",
+    "as_of": "2026-07-20T10:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-003"
+    ],
+    "expected_incident_ids": [
+      3
+    ],
+    "expected_status": {
+      "3": "open"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-049"
+  },
+  {
+    "question": "What was the status of incident 4 when it was detected?",
+    "category": "historical_status",
+    "family": "auth_regression_reopened",
+    "as_of": "2026-08-20T09:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-004"
+    ],
+    "expected_incident_ids": [
+      4
+    ],
+    "expected_status": {
+      "4": "open"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-050"
+  },
+  {
+    "question": "What was the status of incident 5 when it was detected?",
+    "category": "historical_status",
+    "family": "file_misconfig_unverified",
+    "as_of": "2026-09-15T11:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-005"
+    ],
+    "expected_incident_ids": [
+      5
+    ],
+    "expected_status": {
+      "5": "open"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "test",
+    "id": "q-051"
+  },
+  {
+    "question": "What was the status of incident 6 when it was detected?",
+    "category": "historical_status",
+    "family": "admin_integrity_sparse",
+    "as_of": "2026-09-10T06:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-006"
+    ],
+    "expected_incident_ids": [
+      6
+    ],
+    "expected_status": {
+      "6": "open"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-052"
+  },
+  {
+    "question": "What was the status of incident 7 when it was detected?",
+    "category": "historical_status",
+    "family": "gateway_ssrf_resolved",
+    "as_of": "2026-07-25T09:24:00+00:00",
+    "relevant_document_ids": [
+      "incident-007"
+    ],
+    "expected_incident_ids": [
+      7
+    ],
+    "expected_status": {
+      "7": "open"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "test",
+    "id": "q-053"
+  },
+  {
+    "question": "What was the status of incident 8 when it was detected?",
+    "category": "historical_status",
+    "family": "auth_legacy_cipher",
+    "as_of": "2026-10-05T09:48:00+00:00",
+    "relevant_document_ids": [
+      "incident-008"
+    ],
+    "expected_incident_ids": [
+      8
+    ],
+    "expected_status": {
+      "8": "open"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "dev",
+    "id": "q-054"
+  },
+  {
+    "question": "What was the status of incident 9 when it was detected?",
+    "category": "historical_status",
+    "family": "user_audit_gap",
+    "as_of": "2026-09-11T09:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-009"
+    ],
+    "expected_incident_ids": [
+      9
+    ],
+    "expected_status": {
+      "9": "open"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "test",
+    "id": "q-055"
+  },
+  {
+    "question": "What was the status of incident 10 when it was detected?",
+    "category": "historical_status",
+    "family": "admin_vulnerable_library",
+    "as_of": "2026-08-22T13:40:00+00:00",
+    "relevant_document_ids": [
+      "incident-010"
+    ],
+    "expected_incident_ids": [
+      10
+    ],
+    "expected_status": {
+      "10": "open"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "dev",
+    "id": "q-056"
+  },
+  {
+    "question": "What was the status of incident 11 when it was detected?",
+    "category": "historical_status",
+    "family": "billing_workflow_gap",
+    "as_of": "2026-07-18T14:35:00+00:00",
+    "relevant_document_ids": [
+      "incident-011"
+    ],
+    "expected_incident_ids": [
+      11
+    ],
+    "expected_status": {
+      "11": "open"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-057"
+  },
+  {
+    "question": "What was the status of incident 12 when it was detected?",
+    "category": "historical_status",
+    "family": "file_reflected_content_fp",
+    "as_of": "2026-08-15T12:51:00+00:00",
+    "relevant_document_ids": [
+      "incident-012"
+    ],
+    "expected_incident_ids": [
+      12
+    ],
+    "expected_status": {
+      "12": "open"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "dev",
+    "id": "q-058"
+  },
+  {
+    "question": "What was the status of incident 13 when it was detected?",
+    "category": "historical_status",
+    "family": "gateway_cors_misconfig",
+    "as_of": "2026-08-04T13:34:00+00:00",
+    "relevant_document_ids": [
+      "incident-013"
+    ],
+    "expected_incident_ids": [
+      13
+    ],
+    "expected_status": {
+      "13": "open"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "test",
+    "id": "q-059"
+  },
+  {
+    "question": "What was the status of incident 14 when it was detected?",
+    "category": "historical_status",
+    "family": "auth_session_not_revoked",
+    "as_of": "2026-07-31T09:06:00+00:00",
+    "relevant_document_ids": [
+      "incident-014"
+    ],
+    "expected_incident_ids": [
+      14
+    ],
+    "expected_status": {
+      "14": "open"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-060"
+  },
+  {
+    "question": "What was the status of incident 15 when it was detected?",
+    "category": "historical_status",
+    "family": "user_secondary_idor",
+    "as_of": "2026-08-18T09:12:00+00:00",
+    "relevant_document_ids": [
+      "incident-015"
+    ],
+    "expected_incident_ids": [
+      15
+    ],
+    "expected_status": {
+      "15": "open"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-061"
+  },
+  {
+    "question": "What was the status of incident 16 when it was detected?",
+    "category": "historical_status",
+    "family": "billing_webhook_ssrf",
+    "as_of": "2026-10-07T11:02:00+00:00",
+    "relevant_document_ids": [
+      "incident-016"
+    ],
+    "expected_incident_ids": [
+      16
+    ],
+    "expected_status": {
+      "16": "open"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-062"
+  },
+  {
+    "question": "What was the status of incident 17 when it was detected?",
+    "category": "historical_status",
+    "family": "admin_monitoring_gap",
+    "as_of": "2026-07-22T12:03:00+00:00",
+    "relevant_document_ids": [
+      "incident-017"
+    ],
+    "expected_incident_ids": [
+      17
+    ],
+    "expected_status": {
+      "17": "open"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-063"
+  },
+  {
+    "question": "What was the status of incident 18 when it was detected?",
+    "category": "historical_status",
+    "family": "file_unsigned_package",
+    "as_of": "2026-09-25T11:38:00+00:00",
+    "relevant_document_ids": [
+      "incident-018"
+    ],
+    "expected_incident_ids": [
+      18
+    ],
+    "expected_status": {
+      "18": "open"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-064"
+  },
+  {
+    "question": "What was the status of incident 19 when it was detected?",
+    "category": "historical_status",
+    "family": "gateway_tls_downgrade",
+    "as_of": "2026-08-30T09:36:00+00:00",
+    "relevant_document_ids": [
+      "incident-019"
+    ],
+    "expected_incident_ids": [
+      19
+    ],
+    "expected_status": {
+      "19": "open"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-065"
+  },
+  {
+    "question": "What was the status of incident 20 when it was detected?",
+    "category": "historical_status",
+    "family": "auth_mfa_prompt_fp",
+    "as_of": "2026-08-26T11:08:00+00:00",
+    "relevant_document_ids": [
+      "incident-020"
+    ],
+    "expected_incident_ids": [
+      20
+    ],
+    "expected_status": {
+      "20": "open"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-066"
+  },
+  {
+    "question": "What was the status of incident 21 when it was detected?",
+    "category": "historical_status",
+    "family": "user_mass_assignment",
+    "as_of": "2026-08-10T13:16:00+00:00",
+    "relevant_document_ids": [
+      "incident-021"
+    ],
+    "expected_incident_ids": [
+      21
+    ],
+    "expected_status": {
+      "21": "open"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-067"
+  },
+  {
+    "question": "What was the status of incident 22 when it was detected?",
+    "category": "historical_status",
+    "family": "billing_debug_route",
+    "as_of": "2026-07-28T12:45:00+00:00",
+    "relevant_document_ids": [
+      "incident-022"
+    ],
+    "expected_incident_ids": [
+      22
+    ],
+    "expected_status": {
+      "22": "open"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-068"
+  },
+  {
+    "question": "What was the status of incident 23 when it was detected?",
+    "category": "historical_status",
+    "family": "admin_shell_metacharacters",
+    "as_of": "2026-10-04T14:41:00+00:00",
+    "relevant_document_ids": [
+      "incident-023"
+    ],
+    "expected_incident_ids": [
+      23
+    ],
+    "expected_status": {
+      "23": "open"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-069"
+  },
+  {
+    "question": "What was the status of incident 24 when it was detected?",
+    "category": "historical_status",
+    "family": "file_path_join",
+    "as_of": "2026-08-24T09:54:00+00:00",
+    "relevant_document_ids": [
+      "incident-024"
+    ],
+    "expected_incident_ids": [
+      24
+    ],
+    "expected_status": {
+      "24": "open"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-070"
+  },
+  {
+    "question": "What was the status of incident 25 when it was detected?",
+    "category": "historical_status",
+    "family": "gateway_outdated_proxy",
+    "as_of": "2026-09-19T11:56:00+00:00",
+    "relevant_document_ids": [
+      "incident-025"
+    ],
+    "expected_incident_ids": [
+      25
+    ],
+    "expected_status": {
+      "25": "open"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "dev",
+    "id": "q-071"
+  },
+  {
+    "question": "What was the status of incident 26 when it was detected?",
+    "category": "historical_status",
+    "family": "auth_jwt_none_alg",
+    "as_of": "2026-07-20T10:49:00+00:00",
+    "relevant_document_ids": [
+      "incident-026"
+    ],
+    "expected_incident_ids": [
+      26
+    ],
+    "expected_status": {
+      "26": "open"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "test",
+    "id": "q-072"
+  },
+  {
+    "question": "What was the status of incident 27 when it was detected?",
+    "category": "historical_status",
+    "family": "user_login_telemetry",
+    "as_of": "2026-09-06T10:25:00+00:00",
+    "relevant_document_ids": [
+      "incident-027"
+    ],
+    "expected_incident_ids": [
+      27
+    ],
+    "expected_status": {
+      "27": "open"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-073"
+  },
+  {
+    "question": "What was the status of incident 28 when it was detected?",
+    "category": "historical_status",
+    "family": "billing_unsigned_webhook",
+    "as_of": "2026-08-08T11:02:00+00:00",
+    "relevant_document_ids": [
+      "incident-028"
+    ],
+    "expected_incident_ids": [
+      28
+    ],
+    "expected_status": {
+      "28": "open"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-074"
+  },
+  {
+    "question": "What was the status of incident 29 when it was detected?",
+    "category": "historical_status",
+    "family": "admin_default_password_fp",
+    "as_of": "2026-09-02T12:57:00+00:00",
+    "relevant_document_ids": [
+      "incident-029"
+    ],
+    "expected_incident_ids": [
+      29
+    ],
+    "expected_status": {
+      "29": "open"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-075"
+  },
+  {
+    "question": "What was the status of incident 30 when it was detected?",
+    "category": "historical_status",
+    "family": "file_public_listing",
+    "as_of": "2026-10-06T10:55:00+00:00",
+    "relevant_document_ids": [
+      "incident-030"
+    ],
+    "expected_incident_ids": [
+      30
+    ],
+    "expected_status": {
+      "30": "open"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-076"
+  },
+  {
+    "question": "How secure is admin-service?",
+    "category": "current_status",
+    "family": "service-admin-service",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-006",
+      "incident-010",
+      "incident-017",
+      "incident-023",
+      "incident-029"
+    ],
+    "expected_incident_ids": [
+      6,
+      10,
+      17,
+      23,
+      29
+    ],
+    "expected_status": {
+      "6": "investigating",
+      "10": "mitigated",
+      "17": "resolved",
+      "23": "open",
+      "29": "false_positive"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-077"
+  },
+  {
+    "question": "How secure is api-gateway?",
+    "category": "current_status",
+    "family": "service-api-gateway",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-007",
+      "incident-013",
+      "incident-019",
+      "incident-025"
+    ],
+    "expected_incident_ids": [
+      7,
+      13,
+      19,
+      25
+    ],
+    "expected_status": {
+      "7": "resolved",
+      "13": "resolved",
+      "19": "mitigated",
+      "25": "investigating"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-078"
+  },
+  {
+    "question": "How secure is auth-service?",
+    "category": "current_status",
+    "family": "service-auth-service",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-004",
+      "incident-008",
+      "incident-014",
+      "incident-020",
+      "incident-026"
+    ],
+    "expected_incident_ids": [
+      4,
+      8,
+      14,
+      20,
+      26
+    ],
+    "expected_status": {
+      "4": "reopened",
+      "8": "open",
+      "14": "reopened",
+      "20": "false_positive",
+      "26": "resolved"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "dev",
+    "id": "q-079"
+  },
+  {
+    "question": "How secure is billing-service?",
+    "category": "current_status",
+    "family": "service-billing-service",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-001",
+      "incident-003",
+      "incident-011",
+      "incident-016",
+      "incident-022",
+      "incident-028"
+    ],
+    "expected_incident_ids": [
+      1,
+      3,
+      11,
+      16,
+      22,
+      28
+    ],
+    "expected_status": {
+      "1": "resolved",
+      "3": "resolved",
+      "11": "resolved",
+      "16": "open",
+      "22": "reopened",
+      "28": "resolved"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-080"
+  },
+  {
+    "question": "How secure is file-service?",
+    "category": "current_status",
+    "family": "service-file-service",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-005",
+      "incident-012",
+      "incident-018",
+      "incident-024",
+      "incident-030"
+    ],
+    "expected_incident_ids": [
+      5,
+      12,
+      18,
+      24,
+      30
+    ],
+    "expected_status": {
+      "5": "mitigated",
+      "12": "false_positive",
+      "18": "investigating",
+      "24": "resolved",
+      "30": "open"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "train",
+    "id": "q-081"
+  },
+  {
+    "question": "How secure is user-service?",
+    "category": "current_status",
+    "family": "service-user-service",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-002",
+      "incident-009",
+      "incident-015",
+      "incident-021",
+      "incident-027"
+    ],
+    "expected_incident_ids": [
+      2,
+      9,
+      15,
+      21,
+      27
+    ],
+    "expected_status": {
+      "2": "open",
+      "9": "investigating",
+      "15": "resolved",
+      "21": "resolved",
+      "27": "mitigated"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": null,
+    "split": "dev",
+    "id": "q-082"
+  },
+  {
+    "question": "Which critical incidents are active?",
+    "category": "current_status",
+    "family": "posture-critical",
+    "as_of": "2026-10-11T00:00:00+00:00",
+    "relevant_document_ids": [
+      "incident-002",
+      "incident-023"
+    ],
+    "expected_incident_ids": [
+      2,
+      23
+    ],
+    "expected_status": {
+      "2": "open",
+      "23": "open"
+    },
+    "expected_unverified_alert_ids": [],
+    "answerable": true,
+    "failure_case": "current_status",
+    "split": "train",
+    "id": "q-083"
+  }
+]
