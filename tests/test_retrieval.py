@@ -213,6 +213,16 @@ def test_rerank_is_stable_and_keeps_ids() -> None:
     def score(pairs: list[tuple[str, str]]) -> list[float]:
         return [float(text.lower().count("cwe-89")) for _query, text in pairs]
 
+    titled = candidates[1].model_copy(
+        update={"title": "Broken Access Control", "text": "Authorize every object.", "summary": ""}
+    )
+
+    def score_title(pairs: list[tuple[str, str]]) -> list[float]:
+        return [1.0 if "Broken Access Control" in text else 0.0 for _query, text in pairs]
+
+    titled_rank = rerank("prevent this", [titled], top_k=1, score_fn=score_title)
+    assert titled_rank[0].chunk_id == "a"
+
     ranked = rerank("cwe-89", candidates, top_k=2, score_fn=score)
     assert [item.chunk_id for item in ranked] == ["b", "c"]
     assert ranked[0].document_id == "b"

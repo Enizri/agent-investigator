@@ -105,7 +105,7 @@ class InvestigationDeps:
     answer_model: AnswerModel | None = None
     max_steps: int = 6
     tool_timeout_seconds: float = TOOL_TIMEOUT_SECONDS
-    rerank_enabled: bool = False
+    rerank_enabled: bool = True
     score_fn: Any = None
     allowed_evidence: set[str] = field(default_factory=set)
 

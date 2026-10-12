@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 TOKEN_PATTERN = re.compile(r"[a-z0-9]+(?:[._:/-][a-z0-9]+)*", re.IGNORECASE)
 _reranker: Any = None
 _reranker_name: str | None = None
+RERANK_POOL = 150
 
 
 class DenseIndex(Protocol):
@@ -323,6 +324,12 @@ def load_reranker(model_name: str) -> Any:
     return _reranker
 
 
+def _rerank_passage(candidate: RetrievedChunk) -> str:
+    """Title, situating sentence, and chunk. BM25 already searches the title."""
+    parts = [candidate.title.strip(), candidate.summary.strip(), candidate.text.strip()]
+    return "\n\n".join(part for part in parts if part)
+
+
 def rerank(
     query: str,
     candidates: Sequence[RetrievedChunk],
@@ -352,10 +359,7 @@ def rerank(
                 predicted = encoder.predict(list(pairs))
                 return [float(score) for score in predicted]
 
-        passages = [
-            f"{candidate.summary}\n\n{candidate.text}" if candidate.summary else candidate.text
-            for candidate in unique
-        ]
+        passages = [_rerank_passage(candidate) for candidate in unique]
         scores = list(score_fn([(query, passage) for passage in passages]))
         ordered = sorted(
             zip(unique, scores, strict=True),
@@ -412,9 +416,11 @@ async def search_knowledge(
 ) -> list[RetrievedChunk]:
     """Hybrid retrieval on the contextual index, then the cross-encoder unless it is disabled."""
     settings = settings or get_settings()
+    enabled = settings.rerank_enabled if rerank_enabled is None else rerank_enabled
+    recall = max(top_k, RERANK_POOL if enabled else settings.top_k_dense)
     candidates = await hybrid_search(
         query,
-        top_k=max(top_k, settings.top_k_dense),
+        top_k=recall,
         namespace=namespace,
         document_type=document_type,
         settings=settings,
@@ -423,7 +429,6 @@ async def search_knowledge(
         chunks=chunks,
         bm25_index=bm25_index,
     )
-    enabled = settings.rerank_enabled if rerank_enabled is None else rerank_enabled
     if not enabled:
         return candidates[:top_k]
     return await rerank_async(query, candidates, top_k, enabled=True, score_fn=score_fn)
