@@ -5,15 +5,15 @@ import hashlib
 import pytest
 
 from security_investigator.config import Settings
-from security_investigator.ingestion import vectors_for_chunks
 from security_investigator.models import RetrievedChunk
+from security_investigator.preprocess import vectors_for_chunks
 from security_investigator.retrieval import (
     BM25Index,
     MemoryDenseIndex,
     bm25_search,
     dense_search,
     hybrid_search,
-    reciprocal_rank_fusion,
+    rank_fusion,
     rerank,
     search_knowledge,
     tokenize,
@@ -170,18 +170,19 @@ def test_bm25_ranks_exact_identifiers_first() -> None:
     assert [result.chunk_id for result in filtered] == ["incident-001-001"]
 
 
-def test_rrf_uses_ranks_not_raw_scores_and_dedupes() -> None:
-    dense = [_chunk("b", "dense", 0.99), _chunk("a", "dense", 0.1)]
-    lexical = [_chunk("b", "bm25", 0.01), _chunk("c", "bm25", 50)]
-    fused = reciprocal_rank_fusion([dense, lexical], k=60)
-    assert [item.chunk_id for item in fused] == ["b", "a", "c"]
+def test_rank_fusion_weights_dense_above_bm25() -> None:
+    dense = [_chunk("a", "dense", 0.1), _chunk("b", "dense", 0.2)]
+    lexical = [_chunk("b", "bm25", 50), _chunk("c", "bm25", 10)]
+    fused = rank_fusion(dense, lexical, semantic_weight=0.8, bm25_weight=0.2)
+    assert [item.chunk_id for item in fused] == ["a", "b", "c"]
+    assert fused[0].score == pytest.approx(1.0)
     assert fused[0].dense_rank == 1
-    assert fused[0].bm25_rank == 1
-    assert fused[0].score == pytest.approx(1 / 61 + 1 / 61)
+    assert fused[1].dense_rank == 2
+    assert fused[1].bm25_rank == 1
     assert len({item.chunk_id for item in fused}) == 3
 
 
-async def test_hybrid_search_reports_rrf_scores() -> None:
+async def test_hybrid_search_blends_dense_and_bm25() -> None:
     chunks = _chunks()
     results = await hybrid_search(
         "CWE-89",
@@ -191,7 +192,6 @@ async def test_hybrid_search_reports_rrf_scores() -> None:
         index=_index(chunks),
         chunks=chunks,
         bm25_index=BM25Index(chunks),
-        rrf_k=60,
     )
     assert results
     assert all(result.retrieval_method == "hybrid" for result in results)

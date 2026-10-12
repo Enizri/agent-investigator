@@ -1,4 +1,0 @@
-variant,n,incident_identification,status_accuracy,temporal_accuracy,false_positive_rate,citation_accuracy,unsupported_claim_rate,unverified_recall,tool_calls,latency_ms,llm_tokens
-E_dense_rag,83,0.5988,0.4357,0.988,0.012,1.0,0.0,0.9759,1.0,0.0,0.0
-F_hybrid_rag,83,0.7231,0.3554,0.988,0.0241,1.0,0.0,0.9759,1.0,0.0,0.0
-G_agent,78,0.9744,1.0,1.0,0.0,1.0,0.0,1.0,1.9487,74.3325,0.0

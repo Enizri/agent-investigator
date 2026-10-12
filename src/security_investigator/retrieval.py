@@ -1,4 +1,4 @@
-"""Dense, lexical, and fused retrieval over one local chunk corpus."""
+"""Dense cosine search, contextual BM25, rank blend, and reranking."""
 
 from __future__ import annotations
 
@@ -8,16 +8,17 @@ import math
 import re
 import time
 from collections.abc import Mapping, Sequence
+from pathlib import Path
 from typing import Any, Protocol
 
 from security_investigator.config import Settings, get_settings
-from security_investigator.ingestion import (
+from security_investigator.models import RetrievedChunk
+from security_investigator.preprocess import (
     Embedder,
     embed_query,
     load_local_chunks,
     sentence_transformer_embedder,
 )
-from security_investigator.models import RetrievedChunk
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +39,7 @@ class DenseIndex(Protocol):
 
 
 class MemoryDenseIndex:
-    """Cosine index used by tests and offline experiments. Production uses Pinecone."""
+    """In-memory cosine index. One index holds either raw or contextual vectors."""
 
     def __init__(self) -> None:
         self.records: dict[tuple[str, str], dict[str, Any]] = {}
@@ -74,58 +75,12 @@ class MemoryDenseIndex:
         return [(chunk_id, score, metadata) for score, chunk_id, metadata in scored[:top_k]]
 
 
-class PineconeDenseIndex:
-    def __init__(self, settings: Settings | None = None) -> None:
-        self.settings = settings or get_settings()
-        self._index: Any = None
-
-    def _client_index(self) -> Any:
-        if self._index is None:
-            from security_investigator.ingestion import PineconeVectorIndex
-
-            sink = PineconeVectorIndex(self.settings)
-            self._index = sink.ensure_index()
-        return self._index
-
-    async def query(
-        self,
-        vector: Sequence[float],
-        *,
-        top_k: int,
-        namespace: str | None = None,
-        metadata_filter: Mapping[str, str] | None = None,
-    ) -> list[tuple[str, float, dict[str, Any]]]:
-        def run() -> Any:
-            pinecone_filter = None
-            if metadata_filter:
-                pinecone_filter = {key: {"$eq": value} for key, value in metadata_filter.items()}
-            return self._client_index().query(
-                vector=list(vector),
-                top_k=top_k,
-                namespace=namespace or "",
-                filter=pinecone_filter,
-                include_metadata=True,
-                include_values=False,
-            )
-
-        response = await asyncio.to_thread(run)
-        hits: list[tuple[str, float, dict[str, Any]]] = []
-        for match in response.matches or []:
-            metadata = dict(match.metadata or {})
-            hits.append((str(match.id), float(match.score), metadata))
-        return hits
-
-
 def _cosine(left: Sequence[float], right: Sequence[float]) -> float:
     if len(left) != len(right) or not left:
         return 0.0
-    dot = 0.0
-    left_norm = 0.0
-    right_norm = 0.0
-    for a, b in zip(left, right, strict=True):
-        dot += a * b
-        left_norm += a * a
-        right_norm += b * b
+    dot = sum(a * b for a, b in zip(left, right, strict=True))
+    left_norm = math.sqrt(sum(value * value for value in left))
+    right_norm = math.sqrt(sum(value * value for value in right))
     if left_norm == 0.0 or right_norm == 0.0:
         return 0.0
     return dot / math.sqrt(left_norm * right_norm)
@@ -150,6 +105,7 @@ def _hydrate(
                 extra={"chunk_id": chunk_id, "retrieval_method": retrieval_method},
             )
             continue
+        context = str(stored.get("context") or "").strip()
         hydrated.append(
             RetrievedChunk(
                 chunk_id=chunk_id,
@@ -162,72 +118,29 @@ def _hydrate(
                 retrieval_method=retrieval_method,
                 dense_rank=rank if retrieval_method == "dense" else None,
                 bm25_rank=rank if retrieval_method == "bm25" else None,
-                summary=str(stored.get("summary") or _metadata.get("summary") or ""),
+                summary=context,
             )
         )
     return hydrated
 
 
-def _namespaces(settings: Settings, namespace: str | None) -> list[str | None]:
-    if namespace is not None:
-        return [namespace]
-    return [
-        settings.namespace_knowledge,
-        settings.namespace_incidents,
-        settings.namespace_alerts,
-    ]
-
-
-async def dense_search(
-    query: str,
-    top_k: int = 20,
-    *,
-    namespace: str | None = None,
-    document_type: str | None = None,
-    settings: Settings | None = None,
-    embedder: Embedder | None = None,
-    index: DenseIndex | None = None,
-    chunks: Sequence[Mapping[str, Any]] | None = None,
-) -> list[RetrievedChunk]:
-    """Variant A: embed the query and read a dense index. Text comes from the local store."""
-    settings = settings or get_settings()
-    active_embedder = embedder or sentence_transformer_embedder(settings.embedding_model)
-    active_index = index or PineconeDenseIndex(settings)
-    stored = chunk_lookup(chunks if chunks is not None else load_local_chunks(settings_index_dir()))
-    vector = await asyncio.to_thread(embed_query, query, active_embedder, settings)
-    metadata_filter = {"document_type": document_type} if document_type else None
-    hits: list[tuple[str, float, dict[str, Any]]] = []
-    for candidate_namespace in _namespaces(settings, namespace):
-        hits.extend(
-            await active_index.query(
-                vector,
-                top_k=top_k,
-                namespace=candidate_namespace,
-                metadata_filter=metadata_filter,
-            )
-        )
-    hits.sort(key=lambda item: (-item[1], item[0]))
-    deduped: list[tuple[str, float, dict[str, Any]]] = []
-    seen: set[str] = set()
-    for hit in hits:
-        if hit[0] in seen:
-            continue
-        seen.add(hit[0])
-        deduped.append(hit)
-        if len(deduped) >= top_k:
-            break
-    return _hydrate(deduped, stored, retrieval_method="dense")
-
-
-def settings_index_dir():
-    from pathlib import Path
-
+def index_dir() -> Path:
     return Path("data/indexes")
 
 
 def tokenize(text: str) -> list[str]:
     """Keep identifiers such as CWE-89, CVE ids, paths, and rule ids as single tokens."""
     return [match.group(0).lower() for match in TOKEN_PATTERN.finditer(text)]
+
+
+def _search_text(chunk: Mapping[str, Any]) -> str:
+    contextualized = str(chunk.get("contextualized") or "").strip()
+    body = contextualized or str(chunk.get("text") or "")
+    return " ".join(
+        str(value)
+        for value in (chunk.get("title"), body, chunk.get("source_id"), chunk.get("document_id"))
+        if value
+    )
 
 
 class BM25Index:
@@ -269,13 +182,6 @@ class BM25Index:
         return matches
 
 
-def _search_text(chunk: Mapping[str, Any]) -> str:
-    return " ".join(
-        str(chunk.get(field) or "")
-        for field in ("title", "text", "source_id", "document_id", "section")
-    )
-
-
 def bm25_search(
     query: str,
     top_k: int = 20,
@@ -285,44 +191,78 @@ def bm25_search(
     chunks: Sequence[Mapping[str, Any]] | None = None,
     index: BM25Index | None = None,
 ) -> list[RetrievedChunk]:
-    active = index or BM25Index(
-        chunks if chunks is not None else load_local_chunks(settings_index_dir())
-    )
+    active = index or BM25Index(chunks if chunks is not None else load_local_chunks(index_dir()))
     matches = active.search(query, top_k, namespace=namespace, document_type=document_type)
     hits = [(str(chunk["chunk_id"]), score, {}) for chunk, score in matches]
     stored = chunk_lookup(chunk for chunk, _score in matches)
     return _hydrate(hits, stored, retrieval_method="bm25")
 
 
-def reciprocal_rank_fusion(
-    rankings: Sequence[Sequence[RetrievedChunk]],
+async def dense_search(
+    query: str,
+    top_k: int = 20,
     *,
-    k: int = 60,
+    namespace: str | None = None,
+    document_type: str | None = None,
+    settings: Settings | None = None,
+    embedder: Embedder | None = None,
+    index: DenseIndex | None = None,
+    chunks: Sequence[Mapping[str, Any]] | None = None,
 ) -> list[RetrievedChunk]:
-    """Fuse rankings by reciprocal rank. Raw retriever scores are not combined."""
-    fused: dict[str, float] = {}
+    """Embed the query and read a dense index. Passage text stays in the local chunk store."""
+    settings = settings or get_settings()
+    active_embedder = embedder or sentence_transformer_embedder(settings.embedding_model)
+    active_index = index or MemoryDenseIndex()
+    stored = chunk_lookup(chunks if chunks is not None else load_local_chunks(index_dir()))
+    vector = await asyncio.to_thread(embed_query, query, active_embedder, settings)
+    metadata_filter = {"document_type": document_type} if document_type else None
+    hits = await active_index.query(
+        vector,
+        top_k=top_k,
+        namespace=namespace,
+        metadata_filter=metadata_filter,
+    )
+    return _hydrate(hits, stored, retrieval_method="dense")
+
+
+def rank_fusion(
+    dense: Sequence[RetrievedChunk],
+    lexical: Sequence[RetrievedChunk],
+    *,
+    semantic_weight: float = 0.8,
+    bm25_weight: float = 0.2,
+) -> list[RetrievedChunk]:
+    """Blend the two rankings by weighted reciprocal rank, then rescore by fused rank."""
+    dense_ids = [chunk.chunk_id for chunk in dense]
+    lexical_ids = [chunk.chunk_id for chunk in lexical]
     chosen: dict[str, RetrievedChunk] = {}
     dense_ranks: dict[str, int] = {}
     bm25_ranks: dict[str, int] = {}
-    for ranking in rankings:
-        for rank, chunk in enumerate(ranking, start=1):
-            fused[chunk.chunk_id] = fused.get(chunk.chunk_id, 0.0) + (1.0 / (k + rank))
-            chosen.setdefault(chunk.chunk_id, chunk)
-            if chunk.retrieval_method == "dense":
-                dense_ranks[chunk.chunk_id] = rank
-            elif chunk.retrieval_method == "bm25":
-                bm25_ranks[chunk.chunk_id] = rank
-    ordered = sorted(fused, key=lambda chunk_id: (-fused[chunk_id], chunk_id))
+    for rank, chunk in enumerate(dense, start=1):
+        chosen.setdefault(chunk.chunk_id, chunk)
+        dense_ranks[chunk.chunk_id] = rank
+    for rank, chunk in enumerate(lexical, start=1):
+        chosen.setdefault(chunk.chunk_id, chunk)
+        bm25_ranks[chunk.chunk_id] = rank
+    weighted: dict[str, float] = {}
+    for chunk_id in set(dense_ids) | set(lexical_ids):
+        score = 0.0
+        if chunk_id in dense_ranks:
+            score += semantic_weight / dense_ranks[chunk_id]
+        if chunk_id in bm25_ranks:
+            score += bm25_weight / bm25_ranks[chunk_id]
+        weighted[chunk_id] = score
+    ordered = sorted(weighted, key=lambda chunk_id: (-weighted[chunk_id], chunk_id))
     return [
         chosen[chunk_id].model_copy(
             update={
-                "score": fused[chunk_id],
+                "score": 1.0 / (index + 1),
                 "retrieval_method": "hybrid",
                 "dense_rank": dense_ranks.get(chunk_id),
                 "bm25_rank": bm25_ranks.get(chunk_id),
             }
         )
-        for chunk_id in ordered
+        for index, chunk_id in enumerate(ordered)
     ]
 
 
@@ -337,13 +277,16 @@ async def hybrid_search(
     index: DenseIndex | None = None,
     chunks: Sequence[Mapping[str, Any]] | None = None,
     bm25_index: BM25Index | None = None,
-    rrf_k: int | None = None,
+    semantic_weight: float | None = None,
+    bm25_weight: float | None = None,
 ) -> list[RetrievedChunk]:
+    """Contextual dense search blended with BM25 over the same contextualized text."""
     settings = settings or get_settings()
+    recall = max(top_k, settings.top_k_dense, settings.top_k_bm25)
     dense, lexical = await asyncio.gather(
         dense_search(
             query,
-            settings.top_k_dense,
+            recall,
             namespace=namespace,
             document_type=document_type,
             settings=settings,
@@ -354,15 +297,18 @@ async def hybrid_search(
         asyncio.to_thread(
             bm25_search,
             query,
-            settings.top_k_bm25,
+            recall,
             namespace=namespace,
             document_type=document_type,
             chunks=chunks,
             index=bm25_index,
         ),
     )
-    fused = reciprocal_rank_fusion(
-        [dense, lexical], k=rrf_k if rrf_k is not None else settings.rrf_k
+    fused = rank_fusion(
+        dense,
+        lexical,
+        semantic_weight=settings.semantic_weight if semantic_weight is None else semantic_weight,
+        bm25_weight=settings.bm25_weight if bm25_weight is None else bm25_weight,
     )
     return fused[:top_k]
 
@@ -386,7 +332,7 @@ def rerank(
     score_fn: Any = None,
     model_name: str | None = None,
 ) -> list[RetrievedChunk]:
-    """Order candidates by query-document relevance. The score is not a probability."""
+    """Score a wide candidate list and keep the top k. The score is not a probability."""
     started = time.perf_counter()
     unique: list[RetrievedChunk] = []
     seen: set[str] = set()
@@ -406,7 +352,11 @@ def rerank(
                 predicted = encoder.predict(list(pairs))
                 return [float(score) for score in predicted]
 
-        scores = list(score_fn([(query, candidate.text) for candidate in unique]))
+        passages = [
+            f"{candidate.summary}\n\n{candidate.text}" if candidate.summary else candidate.text
+            for candidate in unique
+        ]
+        scores = list(score_fn([(query, passage) for passage in passages]))
         ordered = sorted(
             zip(unique, scores, strict=True),
             key=lambda item: (-float(item[1]), item[0].chunk_id),
@@ -460,7 +410,7 @@ async def search_knowledge(
     rerank_enabled: bool | None = None,
     score_fn: Any = None,
 ) -> list[RetrievedChunk]:
-    """Hybrid retrieval followed by the cross-encoder, unless reranking is disabled."""
+    """Hybrid retrieval on the contextual index, then the cross-encoder unless it is disabled."""
     settings = settings or get_settings()
     candidates = await hybrid_search(
         query,

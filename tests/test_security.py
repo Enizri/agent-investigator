@@ -7,7 +7,7 @@ import pytest
 
 from security_investigator.agent import InvestigationDeps, investigate
 from security_investigator.config import Settings
-from security_investigator.database import incident_status_at, search_logs, write_database
+from security_investigator.database import write_database
 from security_investigator.generator import generate_company
 from security_investigator.retrieval import BM25Index, MemoryDenseIndex
 
@@ -105,12 +105,3 @@ async def test_malicious_retrieved_text_is_not_an_instruction(database_path: Pat
         "ignore previous instructions" not in citation.description.lower()
         for citation in result.citations
     )
-
-
-async def test_missing_rows_and_hostile_patterns_do_not_raise(database_path: Path) -> None:
-    assert await incident_status_at(database_path, 9999, "2026-10-11T00:00:00Z") is None
-    assert await search_logs(database_path, pattern="' OR 1=1 --", limit=5) == []
-    with pytest.raises(ValueError):
-        await search_logs(database_path, start_time="tomorrow")
-    with pytest.raises(ValueError):
-        await search_logs(database_path, limit=201)

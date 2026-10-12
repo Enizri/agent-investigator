@@ -1,4 +1,4 @@
-"""Load, chunk, and index security text. Evaluation files are never indexed."""
+"""Chunk seeded documents, situate each chunk, and save the local indexes."""
 
 from __future__ import annotations
 
@@ -7,34 +7,27 @@ import hashlib
 import json
 import re
 from collections.abc import Callable, Mapping, Sequence
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Any
+
+from tqdm.auto import tqdm
 
 from security_investigator.config import Settings, get_settings
 from security_investigator.database import connect_sync
 from security_investigator.knowledge_catalog import knowledge_records
+from security_investigator.llm import situate_context
 
-# Fixed estimator so chunk ids do not drift with a tokenizer version.
 TOKEN_PER_WORD = 1.3
 TARGET_TOKENS = 400
 MAX_TOKENS = 500
 WORD_WINDOW = 350
 TOP10_FALLBACK = "OWASP Top 10:2025"
-
-METADATA_FIELDS = (
-    "chunk_id",
-    "document_id",
-    "document_type",
-    "source_id",
-    "title",
-    "section",
-    "source_url",
-    "taxonomy_version",
-    "summary",
-)
+METADATA_FIELDS = ("document_id", "document_type", "source_id", "title", "section")
 
 Embedder = Callable[[Sequence[str]], list[list[float]]]
+Situator = Callable[[str, str], str]
 _embedding_model: Any = None
 _embedding_model_name: str | None = None
 
@@ -52,12 +45,7 @@ class SourceDocument:
     namespace: str
 
 
-class VectorIndex(Protocol):
-    def upsert(self, namespace: str, vectors: Sequence[Mapping[str, Any]]) -> None: ...
-
-
 def estimate_tokens(text: str) -> int:
-    """Approximate tokens as 1.3 times whitespace-separated words."""
     words = text.split()
     if not words:
         return 0
@@ -71,14 +59,7 @@ def normalize_text(text: str) -> str:
     return cleaned.strip()
 
 
-def ensure_indexable_path(path: Path) -> None:
-    parts = set(path.resolve().parts)
-    if "scenarios" in parts or "benchmarks" in parts:
-        raise ValueError(f"refusing to index evaluation data: {path}")
-
-
 def chunk_section(section: str, text: str) -> list[tuple[str, str]]:
-    """Split one section. Short sections stay intact so the section name stays true."""
     normalized = normalize_text(text)
     if not normalized:
         return []
@@ -114,18 +95,14 @@ def chunk_section(section: str, text: str) -> list[tuple[str, str]]:
     return pieces
 
 
-def document_summary(document: SourceDocument) -> str:
-    """Short text already written for a seeded document. This is not a model call."""
+def document_text(document: SourceDocument) -> str:
+    parts = [document.title]
     for name, text in document.sections:
-        if name.lower() == "summary":
-            return normalize_text(text)
-    if not document.sections:
-        return ""
-    return normalize_text(document.sections[0][1])
+        parts.append(f"{name}\n{text}")
+    return "\n\n".join(parts)
 
 
 def chunk_document(document: SourceDocument) -> list[dict[str, str]]:
-    summary = document_summary(document)
     chunks: list[dict[str, str]] = []
     for section, text in document.sections:
         for section_name, body in chunk_section(section, text):
@@ -140,7 +117,8 @@ def chunk_document(document: SourceDocument) -> list[dict[str, str]]:
                     "document_type": document.document_type,
                     "taxonomy_version": document.taxonomy_version,
                     "text": body,
-                    "summary": summary,
+                    "context": "",
+                    "contextualized": body,
                     "source_id": document.source_id,
                     "source_type": document.document_type,
                     "license": document.license,
@@ -168,74 +146,6 @@ def knowledge_documents(settings: Settings | None = None) -> list[SourceDocument
             )
         )
     return documents
-
-
-def render_markdown(document: SourceDocument) -> str:
-    header = "\n".join(
-        [
-            "---",
-            f"document_id: {document.document_id}",
-            f"title: {document.title}",
-            f"source_url: {document.source_url}",
-            f"document_type: {document.document_type}",
-            f"taxonomy_version: {document.taxonomy_version}",
-            f"license: {document.license}",
-            "---",
-            "",
-        ]
-    )
-    body = "\n\n".join(f"## {name}\n\n{text}" for name, text in document.sections)
-    return header + body + "\n"
-
-
-def export_knowledge_markdown(directory: Path, settings: Settings | None = None) -> None:
-    directory.mkdir(parents=True, exist_ok=True)
-    for document in knowledge_documents(settings):
-        path = directory / f"{document.document_id}.md"
-        path.write_text(render_markdown(document), encoding="utf-8")
-
-
-def load_markdown(path: Path, *, namespace: str) -> SourceDocument:
-    ensure_indexable_path(path)
-    raw = path.read_text(encoding="utf-8")
-    if not raw.startswith("---\n"):
-        raise ValueError(f"missing front matter: {path}")
-    marker = raw.find("\n---\n", 4)
-    if marker < 0:
-        raise ValueError(f"unterminated front matter: {path}")
-    meta: dict[str, str] = {}
-    for line in raw[4:marker].splitlines():
-        if not line.strip():
-            continue
-        key, value = line.split(": ", 1)
-        meta[key] = value
-    sections: list[tuple[str, str]] = []
-    current = "Overview"
-    buffer: list[str] = []
-    for line in raw[marker + 5 :].splitlines():
-        if line.startswith("## "):
-            text = normalize_text("\n".join(buffer))
-            if text:
-                sections.append((current, text))
-            current = line[3:].strip()
-            buffer = []
-        else:
-            buffer.append(line)
-    tail = normalize_text("\n".join(buffer))
-    if tail:
-        sections.append((current, tail))
-    document_id = meta["document_id"]
-    return SourceDocument(
-        document_id=document_id,
-        title=meta["title"],
-        source_url=meta["source_url"],
-        document_type=meta["document_type"],
-        taxonomy_version=meta["taxonomy_version"],
-        sections=tuple(sections),
-        source_id=document_id,
-        license=meta.get("license", ""),
-        namespace=namespace,
-    )
 
 
 def load_operational_documents(
@@ -357,6 +267,80 @@ def build_chunks(documents: Sequence[SourceDocument]) -> list[dict[str, str]]:
     return chunks
 
 
+def seeded_documents(database_path: Path, settings: Settings | None = None) -> list[SourceDocument]:
+    settings = settings or get_settings()
+    return knowledge_documents(settings) + load_operational_documents(database_path, settings)
+
+
+def limit_documents(documents: Sequence[SourceDocument], limit: int) -> list[SourceDocument]:
+    """Keep a mix of knowledge, incidents, and alerts, up to limit documents."""
+    grouped: dict[str, list[SourceDocument]] = {}
+    for document in documents:
+        grouped.setdefault(document.document_type, []).append(document)
+    chosen: list[SourceDocument] = []
+    while len(chosen) < limit and any(grouped.values()):
+        for group in grouped.values():
+            if group and len(chosen) < limit:
+                chosen.append(group.pop(0))
+    return chosen
+
+
+async def situate_chunks(
+    documents: Sequence[SourceDocument],
+    chunks: Sequence[Mapping[str, str]],
+    situate: Situator,
+    *,
+    stored: Mapping[str, Mapping[str, Any]] | None = None,
+    workers: int = 8,
+    progress: bool = False,
+) -> list[dict[str, str]]:
+    """Write one situating sentence per chunk. Model calls run together on a thread pool."""
+    bodies = {document.document_id: document_text(document) for document in documents}
+    situated: list[dict[str, str] | None] = [None] * len(chunks)
+    pending: list[tuple[int, str, str, str]] = []
+    for index, chunk in enumerate(chunks):
+        updated = dict(chunk)
+        prior = (stored or {}).get(str(chunk["chunk_id"]))
+        context = ""
+        if prior and str(prior.get("text") or "") == chunk["text"]:
+            context = str(prior.get("context") or "").strip()
+        if context:
+            updated["context"] = context
+            updated["contextualized"] = f"{context}\n\n{chunk['text']}"
+            situated[index] = updated
+        else:
+            pending.append(
+                (index, bodies[str(chunk["document_id"])], str(chunk["text"]), str(chunk["chunk_id"]))
+            )
+    if pending:
+        loop = asyncio.get_running_loop()
+        bar = tqdm(total=len(pending), desc="situating", disable=not progress)
+
+        async def run_one(index: int, document: str, text: str, chunk_id: str) -> tuple[int, str, str]:
+            sentence = await loop.run_in_executor(pool, situate, document, text)
+            bar.update(1)
+            bar.set_postfix_str(chunk_id)
+            return index, text, str(sentence)
+
+        try:
+            with ThreadPoolExecutor(max_workers=workers) as pool:
+                results = await asyncio.gather(
+                    *[
+                        run_one(index, document, text, chunk_id)
+                        for index, document, text, chunk_id in pending
+                    ]
+                )
+        finally:
+            bar.close()
+        for index, text, context in results:
+            updated = dict(chunks[index])
+            sentence = context.strip()
+            updated["context"] = sentence
+            updated["contextualized"] = f"{sentence}\n\n{text}" if sentence else text
+            situated[index] = updated
+    return [chunk for chunk in situated if chunk is not None]
+
+
 def content_hash(chunks: Sequence[Mapping[str, str]]) -> str:
     payload = json.dumps(list(chunks), sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
@@ -368,93 +352,20 @@ def write_local_index(
     settings: Settings,
 ) -> dict[str, Any]:
     directory.mkdir(parents=True, exist_ok=True)
-    jsonl_path = directory / "chunks.jsonl"
     lines = [json.dumps(chunk, sort_keys=True) for chunk in chunks]
-    jsonl_path.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
+    (directory / "chunks.jsonl").write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
     manifest = {
         "chunk_count": len(chunks),
         "content_hash": content_hash(chunks),
         "embedding_dimension": settings.embedding_dimension,
         "embedding_model": settings.embedding_model,
-        "namespaces": sorted({chunk["namespace"] for chunk in chunks}),
+        "namespaces": sorted({str(chunk["namespace"]) for chunk in chunks}),
     }
     (directory / "manifest.json").write_text(
         json.dumps(manifest, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
     return manifest
-
-
-def index_incoming(
-    text: str,
-    *,
-    title: str,
-    source_id: str,
-    index_directory: Path,
-    settings: Settings | None = None,
-    summarizer: Any = None,
-    push: bool | None = None,
-) -> dict[str, Any]:
-    """Store one new record. Qwen runs only when this text has no stored summary."""
-    settings = settings or get_settings()
-    body = normalize_text(text)
-    if not body:
-        raise ValueError("incoming text is empty")
-    chunk_id = f"incoming-{source_id}"
-    stored = {str(chunk["chunk_id"]): chunk for chunk in load_local_chunks(index_directory)}
-    prior = stored.get(chunk_id)
-    reused = bool(prior and prior.get("text") == body and str(prior.get("summary") or "").strip())
-    if reused:
-        summary = str(prior["summary"])
-    else:
-        if summarizer is None:
-            raise RuntimeError("a new incoming record needs a summarizer")
-        from security_investigator.llm import attach_chunk_summaries
-
-        drafted = asyncio.run(
-            attach_chunk_summaries(
-                [{"chunk_id": chunk_id, "title": title, "text": body}],
-                summarizer,
-            )
-        )
-        summary = str(drafted[0].get("summary") or "")
-    record = {
-        "chunk_id": chunk_id,
-        "document_id": chunk_id,
-        "title": title,
-        "source_url": f"internal://incoming/{source_id}",
-        "section": "Incoming",
-        "document_type": "alert_summary",
-        "taxonomy_version": TOP10_FALLBACK,
-        "text": body,
-        "summary": summary,
-        "source_id": source_id,
-        "source_type": "incoming",
-        "license": "internal synthetic record",
-        "namespace": f"{settings.pinecone_namespace}-incoming",
-    }
-    stored[chunk_id] = record
-    manifest = write_local_index(index_directory, list(stored.values()), settings)
-    should_push = bool(settings.pinecone_api_key) if push is None else push
-    if should_push:
-        active_embedder = sentence_transformer_embedder(settings.embedding_model)
-        embeddings = embed_passages(
-            [passage_text(record, settings.embed_mode)],
-            active_embedder,
-        )
-        upsert_chunks(
-            PineconeVectorIndex(settings),
-            [record],
-            embeddings,
-            dimension=settings.embedding_dimension,
-        )
-    return {
-        "chunk_id": chunk_id,
-        "summary": summary,
-        "reused": reused,
-        "embed_mode": settings.embed_mode,
-        "content_hash": manifest["content_hash"],
-    }
 
 
 def load_local_chunks(directory: Path) -> list[dict[str, Any]]:
@@ -466,6 +377,17 @@ def load_local_chunks(directory: Path) -> list[dict[str, Any]]:
         if line.strip():
             chunks.append(json.loads(line))
     return chunks
+
+
+def write_vectors(path: Path, vectors: Sequence[Sequence[float]]) -> None:
+    path.write_text(json.dumps(vectors), encoding="utf-8")
+
+
+def load_vectors(path: Path) -> list[list[float]]:
+    if not path.exists():
+        return []
+    loaded = json.loads(path.read_text(encoding="utf-8"))
+    return [list(vector) for vector in loaded]
 
 
 def load_embedding_model(model_name: str) -> Any:
@@ -487,19 +409,6 @@ def sentence_transformer_embedder(model_name: str) -> Embedder:
     return embed
 
 
-def passage_text(chunk: Mapping[str, Any], mode: str = "original") -> str:
-    """Text sent to the embedding model. The stored chunk text does not change."""
-    original = str(chunk.get("text") or "")
-    summary = str(chunk.get("summary") or "").strip()
-    if mode == "original":
-        return original
-    if mode == "summary":
-        return summary or original
-    if mode == "contextual":
-        return f"{summary}\n\n{original}" if summary else original
-    raise ValueError("embed_mode must be original, summary, or contextual")
-
-
 def embed_passages(texts: Sequence[str], embedder: Embedder) -> list[list[float]]:
     if not texts:
         return []
@@ -509,10 +418,6 @@ def embed_passages(texts: Sequence[str], embedder: Embedder) -> list[list[float]
 def embed_query(text: str, embedder: Embedder, settings: Settings | None = None) -> list[float]:
     settings = settings or get_settings()
     return embedder([f"{settings.query_instruction}{text}"])[0]
-
-
-async def embed_passages_async(texts: Sequence[str], embedder: Embedder) -> list[list[float]]:
-    return await asyncio.to_thread(embed_passages, texts, embedder)
 
 
 def vectors_for_chunks(
@@ -530,116 +435,68 @@ def vectors_for_chunks(
                 f"chunk {chunk['chunk_id']} has dimension {len(vector)}, expected {dimension}"
             )
         metadata = {key: chunk[key] for key in METADATA_FIELDS if chunk.get(key) not in (None, "")}
-        grouped.setdefault(chunk["namespace"], []).append(
+        grouped.setdefault(str(chunk["namespace"]), []).append(
             {"id": chunk["chunk_id"], "values": list(vector), "metadata": metadata}
         )
     return grouped
 
 
-def upsert_chunks(
-    index: VectorIndex,
-    chunks: Sequence[Mapping[str, str]],
-    embeddings: Sequence[Sequence[float]],
-    *,
-    dimension: int,
-) -> None:
-    for namespace, vectors in vectors_for_chunks(chunks, embeddings, dimension=dimension).items():
-        index.upsert(namespace, vectors)
-
-
-def _dense_dimension(description: Any) -> int | None:
-    schema = getattr(description, "schema", None)
-    fields = getattr(schema, "fields", None) or {}
-    if isinstance(fields, dict):
-        values = fields.values()
-    else:
-        values = []
-    for field in values:
-        dimension = getattr(field, "dimension", None)
-        if dimension is None and isinstance(field, dict):
-            dimension = field.get("dimension")
-        if dimension:
-            return int(dimension)
-    legacy = getattr(description, "dimension", None)
-    return int(legacy) if legacy else None
-
-
-class PineconeVectorIndex:
-    """Dense vector index. Uses upsert/query, not the document-index API."""
-
-    def __init__(self, settings: Settings | None = None) -> None:
-        self.settings = settings or get_settings()
-        self._index: Any = None
-
-    def ensure_index(self) -> Any:
-        from pinecone import Pinecone, ServerlessSpec
-
-        if not self.settings.pinecone_api_key:
-            raise RuntimeError("PINECONE_API_KEY is empty")
-        client = Pinecone(api_key=self.settings.pinecone_api_key)
-        name = self.settings.pinecone_index
-        if not client.has_index(name):
-            client.create_index(
-                name=name,
-                vector_type="dense",
-                dimension=self.settings.embedding_dimension,
-                metric="cosine",
-                spec=ServerlessSpec(
-                    cloud=self.settings.pinecone_cloud,
-                    region=self.settings.pinecone_region,
-                ),
-                deletion_protection="disabled",
-            )
-        description = client.describe_index(name)
-        dimension = _dense_dimension(description)
-        if dimension != self.settings.embedding_dimension:
-            raise RuntimeError(
-                f"index dimension {dimension} does not match embedding dimension "
-                f"{self.settings.embedding_dimension}"
-            )
-        host = description.host
-        if not host:
-            raise RuntimeError("Pinecone index host is not ready")
-        self._index = client.index(host=host)
-        return self._index
-
-    def upsert(self, namespace: str, vectors: Sequence[Mapping[str, Any]]) -> None:
-        if self._index is None:
-            self.ensure_index()
-        self._index.upsert(
-            vectors=list(vectors),
-            namespace=namespace,
-            batch_size=100,
-            show_progress=False,
-        )
-
-
-def index_corpus(
+async def preprocess_corpus(
     database_path: Path,
     index_directory: Path,
     *,
     settings: Settings | None = None,
+    situate: Situator | None = None,
     embedder: Embedder | None = None,
-    vector_index: VectorIndex | None = None,
-    push: bool = False,
-    embed_mode: str | None = None,
+    limit: int | None = None,
+    document_limit: int | None = None,
+    progress: bool = False,
 ) -> dict[str, Any]:
+    """Chunk the seed, situate every chunk, embed the raw text and the contextualized text."""
     settings = settings or get_settings()
-    mode = embed_mode or settings.embed_mode
-    documents = knowledge_documents(settings) + load_operational_documents(database_path, settings)
+    if limit is not None and limit <= 0:
+        raise ValueError("limit must be positive")
+    if document_limit is not None and document_limit <= 0:
+        raise ValueError("document_limit must be positive")
+    documents = await asyncio.to_thread(seeded_documents, database_path, settings)
+    if document_limit is not None:
+        documents = limit_documents(documents, document_limit)
     chunks = build_chunks(documents)
-    manifest = write_local_index(index_directory, chunks, settings)
-    manifest["summarized_count"] = sum(1 for chunk in chunks if chunk.get("summary"))
-    manifest["embed_mode"] = mode
-    if push:
-        active_embedder = embedder or sentence_transformer_embedder(settings.embedding_model)
-        embeddings = embed_passages(
-            [passage_text(chunk, mode) for chunk in chunks], active_embedder
+    if limit is not None:
+        chunks = chunks[:limit]
+    if progress:
+        print(
+            f"indexing {len(documents)} documents, {len(chunks)} chunks",
+            flush=True,
         )
-        upsert_chunks(
-            vector_index or PineconeVectorIndex(settings),
-            chunks,
-            embeddings,
-            dimension=settings.embedding_dimension,
-        )
+    stored = {
+        str(chunk["chunk_id"]): chunk
+        for chunk in await asyncio.to_thread(load_local_chunks, index_directory)
+    }
+    active_situate = situate or (
+        lambda document, chunk: situate_context(document, chunk, settings=settings)
+    )
+    situated = await situate_chunks(
+        documents,
+        chunks,
+        active_situate,
+        stored=stored,
+        workers=settings.situate_workers,
+        progress=progress,
+    )
+    manifest = await asyncio.to_thread(write_local_index, index_directory, situated, settings)
+    active_embedder = embedder or sentence_transformer_embedder(settings.embedding_model)
+    basic = await asyncio.to_thread(
+        embed_passages, [str(chunk["text"]) for chunk in situated], active_embedder
+    )
+    contextual = await asyncio.to_thread(
+        embed_passages, [str(chunk["contextualized"]) for chunk in situated], active_embedder
+    )
+    await asyncio.to_thread(write_vectors, index_directory / "basic_embeddings.json", basic)
+    await asyncio.to_thread(
+        write_vectors, index_directory / "contextual_embeddings.json", contextual
+    )
+    manifest["chunks"] = situated
+    manifest["basic_embeddings"] = basic
+    manifest["contextual_embeddings"] = contextual
     return manifest

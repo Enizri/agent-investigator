@@ -121,16 +121,11 @@ class RetrievedChunk(BaseModel):
 
 
 class ChunkSummaryPair(BaseModel):
-    """One retrieved chunk and the summary the LLM wrote for that same chunk."""
+    """One retrieved chunk and the situating sentence stored with it."""
 
     chunk_id: str
     text: str
     summary: str
-
-
-class InvestigationQuery(BaseModel):
-    question: str = Field(min_length=1, max_length=4000)
-    as_of: datetime | None = None
 
 
 class EvidenceReference(BaseModel):
